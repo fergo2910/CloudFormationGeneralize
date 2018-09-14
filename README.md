@@ -3,10 +3,14 @@ AWS Training of CFN
 
 ## Structure
 
-/infrastructure
-/infrastructure/<resource>
-/infrastructure/<resource>/<resource>.yaml
-/infrastructure/<resource>/README.md
+    /infrastructure
+    
+    /infrastructure/<resource>
+    
+    /infrastructure/<resource>/<resource>.yaml
+    
+    /infrastructure/<resource>/README.md
+
   
 ## Instructions
 
