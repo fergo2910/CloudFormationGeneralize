@@ -1,16 +1,13 @@
-Description: High availability VPC - Staging/Production
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
   ProdVPC:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 10.50.0.0/16
-    
   StagingVPC:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 10.5.0.0/16
-    
   ProdPublic1:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -18,7 +15,6 @@ Resources:
       AvailabilityZone: us-east-1a
       CidrBlock: 10.50.1.0/24
       MapPublicIpOnLaunch: true
-    
   ProdPublic2:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -26,7 +22,6 @@ Resources:
       AvailabilityZone: us-east-1b
       CidrBlock: 10.50.2.0/24
       MapPublicIpOnLaunch: true
-    
   ProdPublic3:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -34,31 +29,27 @@ Resources:
       AvailabilityZone: us-east-1c
       CidrBlock: 10.50.3.0/24
       MapPublicIpOnLaunch: true
-    
   ProdPrivate1:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref ProdVPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.50.10.0/24
-      MapPublicIpOnLaunch: false
-    
+      MapPublicIpOnLaunch: true
   ProdPrivate2:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref ProdVPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.50.20.0/24
-      MapPublicIpOnLaunch: false
-    
+      MapPublicIpOnLaunch: true
   ProdPrivate3:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref ProdVPC
       AvailabilityZone: us-east-1c
       CidrBlock: 10.50.30.0/24
-      MapPublicIpOnLaunch: false
-      
+      MapPublicIpOnLaunch: true
   StagingPublic1:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -66,7 +57,6 @@ Resources:
       AvailabilityZone: us-east-1a
       CidrBlock: 10.5.1.0/24
       MapPublicIpOnLaunch: true
-    
   StagingPublic2:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -74,7 +64,6 @@ Resources:
       AvailabilityZone: us-east-1b
       CidrBlock: 10.5.2.0/24
       MapPublicIpOnLaunch: true
-    
   StagingPublic3:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -82,27 +71,104 @@ Resources:
       AvailabilityZone: us-east-1c
       CidrBlock: 10.5.3.0/24
       MapPublicIpOnLaunch: true
-    
   StagingPrivate1:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref StagingVPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.5.10.0/24
-      MapPublicIpOnLaunch: false
-    
+      MapPublicIpOnLaunch: true
   StagingPrivate2:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref StagingVPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.5.20.0/24
-      MapPublicIpOnLaunch: false
-    
+      MapPublicIpOnLaunch: true
   StagingPrivate3:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref StagingVPC
       AvailabilityZone: us-east-1c
       CidrBlock: 10.5.30.0/24
-      MapPublicIpOnLaunch: false
+      MapPublicIpOnLaunch: true
+
+  ProdInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  StagingInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    
+  ProdVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref ProdVPC
+      InternetGatewayId: !Ref ProdInternetGateway
+  
+  StagingVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref StagingVPC
+      InternetGatewayId: !Ref StagingInternetGateway
+      
+  ProdRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ProdVPC
+      
+  ProdInternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: ProdInternetGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref ProdInternetGateway
+      RouteTableId: !Ref ProdRouteTable
+      
+  StagingRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref StagingVPC
+
+  StagingInternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: StagingInternetGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref StagingInternetGateway
+      RouteTableId: !Ref StagingRouteTable
+
+  ProdPublic1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ProdRouteTable
+      SubnetId: !Ref ProdPublic1
+      
+  ProdPublic2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ProdRouteTable
+      SubnetId: !Ref ProdPublic2
+      
+  ProdPublic3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ProdRouteTable
+      SubnetId: !Ref ProdPublic3
+
+  ProdPrivate1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ProdRouteTable
+      SubnetId: !Ref ProdPrivate1
+      
+  ProdPrivate2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ProdRouteTable
+      SubnetId: !Ref ProdPrivate2
+      
+  ProdPrivate3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ProdRouteTable
+      SubnetId: !Ref ProdPrivate3
