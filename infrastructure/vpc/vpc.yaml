@@ -41,7 +41,7 @@ Resources:
       VpcId: !Ref ProdVPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.50.10.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
     
   ProdPrivate2:
     Type: 'AWS::EC2::Subnet'
@@ -49,7 +49,7 @@ Resources:
       VpcId: !Ref ProdVPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.50.20.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
     
   ProdPrivate3:
     Type: 'AWS::EC2::Subnet'
@@ -57,7 +57,7 @@ Resources:
       VpcId: !Ref ProdVPC
       AvailabilityZone: us-east-1c
       CidrBlock: 10.50.30.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       
   StagingPublic1:
     Type: 'AWS::EC2::Subnet'
@@ -89,7 +89,7 @@ Resources:
       VpcId: !Ref StagingVPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.5.10.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
     
   StagingPrivate2:
     Type: 'AWS::EC2::Subnet'
@@ -97,7 +97,7 @@ Resources:
       VpcId: !Ref StagingVPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.5.20.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
     
   StagingPrivate3:
     Type: 'AWS::EC2::Subnet'
@@ -105,4 +105,4 @@ Resources:
       VpcId: !Ref StagingVPC
       AvailabilityZone: us-east-1c
       CidrBlock: 10.5.30.0/24
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
