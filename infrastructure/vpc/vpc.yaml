@@ -1,240 +1,312 @@
-AWSTemplateFormatVersion: 2010-09-09
-Resources:
-  ProdVPC:
-    Type: 'AWS::EC2::VPC'
-    Properties:
-      CidrBlock: 10.50.0.0/16
-  StagingVPC:
-    Type: 'AWS::EC2::VPC'
-    Properties:
-      CidrBlock: 10.5.0.0/16
-  ProdPublic1:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref ProdVPC
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.50.1.0/24
-      MapPublicIpOnLaunch: true
-  ProdPublic2:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref ProdVPC
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.50.2.0/24
-      MapPublicIpOnLaunch: true
-  ProdPublic3:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref ProdVPC
-      AvailabilityZone: us-east-1c
-      CidrBlock: 10.50.3.0/24
-      MapPublicIpOnLaunch: true
-  ProdPrivate1:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref ProdVPC
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.50.10.0/24
-      MapPublicIpOnLaunch: true
-  ProdPrivate2:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref ProdVPC
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.50.20.0/24
-      MapPublicIpOnLaunch: true
-  ProdPrivate3:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref ProdVPC
-      AvailabilityZone: us-east-1c
-      CidrBlock: 10.50.30.0/24
-      MapPublicIpOnLaunch: true
-  StagingPublic1:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref StagingVPC
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.5.1.0/24
-      MapPublicIpOnLaunch: true
-  StagingPublic2:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref StagingVPC
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.5.2.0/24
-      MapPublicIpOnLaunch: true
-  StagingPublic3:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref StagingVPC
-      AvailabilityZone: us-east-1c
-      CidrBlock: 10.5.3.0/24
-      MapPublicIpOnLaunch: true
-  StagingPrivate1:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref StagingVPC
-      AvailabilityZone: us-east-1a
-      CidrBlock: 10.5.10.0/24
-      MapPublicIpOnLaunch: true
-  StagingPrivate2:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref StagingVPC
-      AvailabilityZone: us-east-1b
-      CidrBlock: 10.5.20.0/24
-      MapPublicIpOnLaunch: true
-  StagingPrivate3:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      VpcId: !Ref StagingVPC
-      AvailabilityZone: us-east-1c
-      CidrBlock: 10.5.30.0/24
-      MapPublicIpOnLaunch: true
+Description: >
+  VPC template with three public and three private subnets spread 
+  across three Availabilty Zones. It deploys an Internet Gateway, with a default 
+  route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
+  and default routes for them in the private subnets.
+Parameters:
+  Enterprice:
+    Description: An enterprice name that will be prefixed to resource names
+    Type: String
 
-  ProdInternetGateway:
-    Type: AWS::EC2::InternetGateway
+  VpcProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC for Production environment
+    Type: String
+    Default: 10.50.0.0/16
 
-  StagingInternetGateway:
-    Type: AWS::EC2::InternetGateway
+  PublicSubnet1ProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone for Production environment
+    Type: String
+    Default: 10.50.1.0/24
+
+  PublicSubnet2ProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone for Production environment
+    Type: String
+    Default: 10.50.2.0/24
+
+  PublicSubnet3ProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone for Production environment
+    Type: String
+    Default: 10.50.3.0/24
+
+  PrivateSubnet1ProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone for Production environment
+    Type: String
+    Default: 10.50.10.0/24
+
+  PrivateSubnet2ProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone for Production environment
+    Type: String
+    Default: 10.50.20.0/24
     
-  ProdVPCGatewayAttachment:
+  PrivateSubnet3ProdCIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the third Availability Zone for Production environment
+    Type: String
+    Default: 10.50.30.0/24
+
+Resources:
+  VPCProd:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcProdCIDR
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref Enterprice
+
+  InternetGatewayProd:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref Enterprice
+
+  InternetGatewayAttachmentProd:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref ProdVPC
-      InternetGatewayId: !Ref ProdInternetGateway
-  
-  StagingVPCGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref StagingVPC
-      InternetGatewayId: !Ref StagingInternetGateway
-      
-  ProdRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref ProdVPC
-      
-  ProdInternetRoute:
-    Type: AWS::EC2::Route
-    DependsOn: ProdInternetGateway
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref ProdInternetGateway
-      RouteTableId: !Ref ProdRouteTable
-      
-  StagingRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref StagingVPC
+      InternetGatewayId: !Ref InternetGatewayProd
+      VpcId: !Ref VPCProd
 
-  StagingInternetRoute:
-    Type: AWS::EC2::Route
-    DependsOn: StagingInternetGateway
+  PublicSubnet1Prod:
+    Type: AWS::EC2::Subnet
     Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref StagingInternetGateway
-      RouteTableId: !Ref StagingRouteTable
+      VpcId: !Ref VPCProd
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !Ref PublicSubnet1ProdCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Public Subnet (AZ1) for Production environment
 
-  ProdPublic1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
+  PublicSubnet2Prod:
+    Type: AWS::EC2::Subnet
     Properties:
-      RouteTableId: !Ref ProdRouteTable
-      SubnetId: !Ref ProdPublic1
-      
-  ProdPublic2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref ProdRouteTable
-      SubnetId: !Ref ProdPublic2
-      
-  ProdPublic3RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref ProdRouteTable
-      SubnetId: !Ref ProdPublic3
-
-  ProdPrivate1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref ProdRouteTable
-      SubnetId: !Ref ProdPrivate1
-      
-  ProdPrivate2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref ProdRouteTable
-      SubnetId: !Ref ProdPrivate2
-      
-  ProdPrivate3RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref ProdRouteTable
-      SubnetId: !Ref ProdPrivate3
-
-  StagingPublic1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref StagingRouteTable
-      SubnetId: !Ref StagingPublic1
-      
-  StagingPublic2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref StagingRouteTable
-      SubnetId: !Ref StagingPublic2
-      
-  StagingPublic3RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref StagingRouteTable
-      SubnetId: !Ref StagingPublic3
-
-  StagingPrivate1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref StagingRouteTable
-      SubnetId: !Ref StagingPrivate1
-      
-  StagingPrivate2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref StagingRouteTable
-      SubnetId: !Ref StagingPrivate2
-      
-  StagingPrivate3RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref StagingRouteTable
-      SubnetId: !Ref StagingPrivate3
-      
-  ProdSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: "Internet Group Production"
-      GroupDescription: "SSH traffic in, all traffic out."
-      VpcId: !Ref ProdVPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPCProd
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: !Ref PublicSubnet2ProdCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Public Subnet (AZ2) for Production environment
           
-  StagingSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+  PublicSubnet3Prod:
+    Type: AWS::EC2::Subnet
     Properties:
-      GroupName: "Internet Group Staging"
-      GroupDescription: "SSH traffic in, all traffic out."
-      VpcId: !Ref StagingVPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPCProd
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      CidrBlock: !Ref PublicSubnet3ProdCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Public Subnet (AZ3) for Production environment
+
+  PrivateSubnet1Prod:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCProd
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !Ref PrivateSubnet1ProdCIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Private Subnet (AZ1) for Production environment
+
+  PrivateSubnet2Prod:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCProd
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: !Ref PrivateSubnet2ProdCIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Private Subnet (AZ2) for Production environment
+
+  PrivateSubnet3Prod:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCProd
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      CidrBlock: !Ref PrivateSubnet3ProdCIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Private Subnet (AZ3) for Production environment
+
+  NatGateway1EIPProd:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachmentProd
+    Properties:
+      Domain: vpc
+
+  NatGateway2EIPProd:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachmentProd
+    Properties:
+      Domain: vpc
+      
+  NatGateway3EIPProd:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachmentProd
+    Properties:
+      Domain: vpc
+
+  NatGateway1Prod:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway1EIPProd.AllocationId
+      SubnetId: !Ref PublicSubnet1Prod
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Nat Gateway Public Subnet (AZ1) for Production environment
+
+  NatGateway2Prod:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway2EIPProd.AllocationId
+      SubnetId: !Ref PublicSubnet2Prod
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Nat Gateway Public Subnet (AZ2) for Production environment
+
+  NatGateway3Prod:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway3EIPProd.AllocationId
+      SubnetId: !Ref PublicSubnet3Prod
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Nat Gateway Public Subnet (AZ3) for Production environment
+
+  PublicRouteTableProd:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCProd
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Public Routes for Production environment
+
+  DefaultPublicRouteProd:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachmentProd
+    Properties:
+      RouteTableId: !Ref PublicRouteTableProd
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGatewayProd
+
+  PublicSubnet1RouteTableAssociationProd:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTableProd
+      SubnetId: !Ref PublicSubnet1Prod
+
+  PublicSubnet2RouteTableAssociationProd:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTableProd
+      SubnetId: !Ref PublicSubnet2Prod
+
+  PublicSubnet3RouteTableAssociationProd:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTableProd
+      SubnetId: !Ref PublicSubnet3Prod
+
+  PrivateRouteTable1Prod:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCProd
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Private Routes (AZ1) for Production environment
+
+  DefaultPrivateRoute1Prod:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1Prod
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1Prod
+
+  PrivateSubnet1RouteTableAssociationProd:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1Prod
+      SubnetId: !Ref PrivateSubnet1Prod
+
+  PrivateRouteTable2Prod:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCProd
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Private Routes (AZ2) for Production environment
+
+  DefaultPrivateRoute2Prod:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2Prod
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2Prod
+
+  PrivateSubnet2RouteTableAssociationProd:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2Prod
+      SubnetId: !Ref PrivateSubnet2Prod
+
+  PrivateRouteTable3Prod:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCProd
+      Tags:
+        - Key: Name
+          Value: !Sub ${Enterprice} Private Routes (AZ3) for Production environment
+
+  DefaultPrivateRoute3Prod:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3Prod
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway3Prod
+
+  PrivateSubnet3RouteTableAssociationProd:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3Prod
+      SubnetId: !Ref PrivateSubnet3Prod
+
+Outputs:
+  VPCProd:
+    Description: A reference to the created VPC
+    Value: !Ref VPCProd
+
+  PublicSubnets:
+    Description: A list of the public subnets
+    Value: !Join [",", [!Ref PublicSubnet1Prod, !Ref PublicSubnet2Prod, !Ref PublicSubnet3Prod]]
+
+  PrivateSubnets:
+    Description: A list of the private subnets
+    Value: !Join [",", [!Ref PrivateSubnet1Prod, !Ref PrivateSubnet2Prod, !Ref PrivateSubnet3Prod]]
+
+  PublicSubnet1Prod:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnet1Prod
+
+  PublicSubnet2Prod:
+    Description: A reference to the public subnet in the 2nd Availability Zone
+    Value: !Ref PublicSubnet2Prod
+    
+  PublicSubnet3Prod:
+    Description: A reference to the public subnet in the 3th Availability Zone
+    Value: !Ref PublicSubnet3Prod
+
+  PrivateSubnet1Prod:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref PrivateSubnet1Prod
+
+  PrivateSubnet2Prod:
+    Description: A reference to the private subnet in the 2nd Availability Zone
+    Value: !Ref PrivateSubnet2Prod
+    
+  PrivateSubnet3Prod:
+    Description: A reference to the private subnet in the 3th Availability Zone
+    Value: !Ref PrivateSubnet3Prod
